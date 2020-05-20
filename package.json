@@ -1,0 +1,24 @@
+{
+  "name": "webpack-ssh-plugin",
+  "version": "1.0.1",
+  "description": "webpack plugin upload files from local to remote",
+  "main": "dist/cjs.js",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel src -d dist --copy-files"
+  },
+  "keywords": ["webpack","upload","files"],
+  "author": "mingetian",
+  "license": "ISC",
+  "dependencies": {
+    "ssh2-sftp-client": "^4.2.3",
+    "util": "^0.12.1",
+    "make-dir": "^3.0.0",
+    "chalk": "^2.4.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "cross-env": "^7.0.2"
+  }
+}
