@@ -39,7 +39,9 @@ class PreloadCheck {
             }
             needUploads = await this.diffCache(caches);
             // 刷新缓存
-            await this.reWriteCache(caches);
+            if(cache){
+                await this.reWriteCache(caches);
+            }
         }catch(e){
             console.log(e);
         }
