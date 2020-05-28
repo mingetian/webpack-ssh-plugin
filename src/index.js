@@ -173,22 +173,37 @@ class WebpackSSHPlugins{
                     dirs = [...new Set(fp.filter(p => p))];
                     dirs = dirs.map(p=>sftp.mkdir(p,true));
                     await Promise.all(dirs);
-                    checkout = checkout.map(async file=>{
-                        let fileP =  file.localFile;
+                    await checkout.reduce(async (prom,file)=>{
+                        let fileP =  file.localFile,ret;
+                        await prom;
                         try{
                             file.filename = file.filename.replace(/\\/g,'/');
                             file.localFile = file.localFile.replace(/\\/g,'/');
-                            await sftp.fastPut(file.localFile,file.remoteDir + '/' + file.filename);
+                            ret = await sftp.fastPut(file.localFile,file.remoteDir + '/' + file.filename);
                             console.log(chalk.green(file.localFile + '--->' + file.remoteDir + '/' + file.filename + '--->已上传'));
                         }catch(e){
                             errFiles.push(fileP);
                             console.log(chalk.red(e));    
                         }
+                        return ret;
+                    },Promise.resolve());
+
+                    // checkout = checkout.map(async file=>{
+                    //     let fileP =  file.localFile;
+                    //     try{
+                    //         file.filename = file.filename.replace(/\\/g,'/');
+                    //         file.localFile = file.localFile.replace(/\\/g,'/');
+                    //         await sftp.fastPut(file.localFile,file.remoteDir + '/' + file.filename);
+                    //         console.log(chalk.green(file.localFile + '--->' + file.remoteDir + '/' + file.filename + '--->已上传'));
+                    //     }catch(e){
+                    //         errFiles.push(fileP);
+                    //         console.log(chalk.red(e));    
+                    //     }
                         
-                    })
-                    await Promise.all(checkout);
+                    // })
+                    // await Promise.all(checkout);
                     await sftp.end();
-                    checker.reWriteCache(errFiles);
+                    if(cache)checker.reWriteCache(errFiles);
                     if(errFiles.length){
                         console.log(chalk.red("多个文件上传出错"));   
                     }else{
@@ -197,7 +212,7 @@ class WebpackSSHPlugins{
                     
                 }catch(e){
                     await sftp.end();
-                    checker.reWriteCache(); 
+                    if(cache)checker.reWriteCache(); ;
                     console.log(chalk.red(e));   
                 }
                  
