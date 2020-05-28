@@ -1,6 +1,6 @@
 {
   "name": "webpack-ssh-plugin",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "webpack plugin upload files from local to remote",
   "main": "dist/cjs.js",
   "scripts": {
