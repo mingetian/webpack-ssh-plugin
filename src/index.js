@@ -90,35 +90,51 @@ class PreloadCheck {
     async next(caches,restPath,needUploads) {
         let rootPath = path.join(this.localPath,restPath);
         let proms;
-        try{
-            let outNames = await readdir(rootPath);
-            proms = outNames.map(async t=>{
-                try{
-                    let p = path.join(rootPath,t);
-                    let remoteDir = path.join(this.remotePath,restPath);
-                    let stats =await stat(p);
-                    if(stats.isDirectory()){
-                        let innerPath = path.join(restPath,t);
-                        return await this.next(caches,innerPath,needUploads)
-                    }else{
-                        let hash = this.makeHash(p);
-                        if(caches[p] !== hash){
-                            needUploads.push({
-                                localFile:  p,
-                                filename: t,
-                                remoteDir
-                            });
-                            caches[p] = hash;
-                            return ;
+        let statObj = await stat(rootPath);
+        if(statObj.isDirectory()){
+            try{
+                let outNames = await readdir(rootPath);
+                proms = outNames.map(async t=>{
+                    try{
+                        let p = path.join(rootPath,t);
+                        let remoteDir = path.join(this.remotePath,restPath);
+                        let stats =await stat(p);
+                        if(stats.isDirectory()){
+                            let innerPath = path.join(restPath,t);
+                            return await this.next(caches,innerPath,needUploads)
+                        }else{
+                            let hash = this.makeHash(p);
+                            if(caches[p] !== hash){
+                                needUploads.push({
+                                    localFile:  p,
+                                    filename: t,
+                                    remoteDir
+                                });
+                                caches[p] = hash;
+                                return ;
+                            }
                         }
+                    }catch(e){
+                        console.log(e);
                     }
-                }catch(e){
-                    console.log(e);
-                }
+                });
+            }catch(e){
+                console.log(e);
+            }
+        }else{
+          try{
+            let hash = this.makeHash(rootPath);
+            needUploads.push({
+                localFile: rootPath,
+                filename: path.basename(rootPath),
+                remoteDir: this.remotePath
             });
-        }catch(e){
-            console.log(e);
+            caches[rootPath] = hash;
+          }catch(err){
+            console.log(err);
+          }
         }
+        
        
         return await Promise.all(proms); 
     }
