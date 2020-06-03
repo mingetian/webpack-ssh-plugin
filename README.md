@@ -25,3 +25,7 @@ new SSHPlugin({
 ...
 
 ```
+### tips
+
+if you need, you can new this plugin one more.
+so you can deal diff dirs, upload to remote diff dirs.
