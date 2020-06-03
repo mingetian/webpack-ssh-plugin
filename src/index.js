@@ -89,7 +89,7 @@ class PreloadCheck {
     }
     async next(caches,restPath,needUploads) {
         let rootPath = path.join(this.localPath,restPath);
-        let proms;
+        let proms=[];
         let statObj = await stat(rootPath);
         if(statObj.isDirectory()){
             try{
