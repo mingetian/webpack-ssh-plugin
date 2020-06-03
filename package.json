@@ -13,6 +13,9 @@
   ],
   "author": "mingetian",
   "license": "ISC",
+  "repository": "mingetian/webpack-ssh-plugin",
+  "homepage": "https://github.com/mingetian/webpack-ssh-plugin.git",
+  "bugs": "https://github.com/mingetian/webpack-ssh-plugin/issues",
   "dependencies": {
     "ssh2-sftp-client": "^4.2.3",
     "util": "^0.12.1",
