@@ -164,75 +164,81 @@ class WebpackSSHPlugins{
     }
     apply(compiler) {
         let localPath = compiler.options.output.path;
-        let { remotePath ,user, localDir,cache = false} = this.options
-        compiler.hooks.done.tap('WebpackSSHPlugins', async (compilation) => {
-                let checker = new PreloadCheck({
-                    localPath: path.resolve(localPath,localDir),
-                    cacheDirectory: this.options.cacheDirectory,
-                    remotePath
-                });
-                try{
-                    let checkout = await checker.checkCache(cache);
-                    let dirs,errFiles=[];
-                    if(!checkout.length)return console.log(chalk.blue('没有要更新的文件'));
-                    await sftp.connect(user);
-                    if(!await sftp.exists(remotePath)){
-                        await sftp.mkdir(remotePath,true);
-                    }
-                    let fp = checkout.map(async file=>{
-                        file.remoteDir = file.remoteDir.replace(/\\/g,'/');
-                        if(!await sftp.exists(file.remoteDir)){
-                            return file.remoteDir;
-                        }
-                    });
-                    fp = await Promise.all(fp);
-                    dirs = [...new Set(fp.filter(p => p))];
-                    dirs = dirs.map(p=>sftp.mkdir(p,true));
-                    await Promise.all(dirs);
-                    await checkout.reduce(async (prom,file)=>{
-                        let fileP =  file.localFile,ret;
-                        await prom;
-                        try{
-                            file.filename = file.filename.replace(/\\/g,'/');
-                            file.localFile = file.localFile.replace(/\\/g,'/');
-                            ret = await sftp.fastPut(file.localFile,file.remoteDir + '/' + file.filename);
-                            console.log(chalk.green(file.localFile + '--->' + file.remoteDir + '/' + file.filename + '--->已上传'));
-                        }catch(e){
-                            errFiles.push(fileP);
-                            console.log(chalk.red(e));    
-                        }
-                        return ret;
-                    },Promise.resolve());
-
-                    // checkout = checkout.map(async file=>{
-                    //     let fileP =  file.localFile;
-                    //     try{
-                    //         file.filename = file.filename.replace(/\\/g,'/');
-                    //         file.localFile = file.localFile.replace(/\\/g,'/');
-                    //         await sftp.fastPut(file.localFile,file.remoteDir + '/' + file.filename);
-                    //         console.log(chalk.green(file.localFile + '--->' + file.remoteDir + '/' + file.filename + '--->已上传'));
-                    //     }catch(e){
-                    //         errFiles.push(fileP);
-                    //         console.log(chalk.red(e));    
-                    //     }
-                        
-                    // })
-                    // await Promise.all(checkout);
-                    await sftp.end();
-                    if(cache)checker.reWriteCache(errFiles);
-                    if(errFiles.length){
-                        console.log(chalk.red("多个文件上传出错"));   
-                    }else{
-                        console.log(chalk.green("全部上传结束"));   
-                    }
-                    
-                }catch(e){
-                    await sftp.end();
-                    if(cache)checker.reWriteCache(); ;
-                    console.log(chalk.red(e));   
+        let { remotePath ,user, localDir,cache = false} = this.options;
+        const upload = async (compilation) => {
+            let checker = new PreloadCheck({
+                localPath: path.resolve(localPath,localDir),
+                cacheDirectory: this.options.cacheDirectory,
+                remotePath
+            });
+            try{
+                let checkout = await checker.checkCache(cache);
+                let dirs,errFiles=[];
+                if(!checkout.length)return console.log(chalk.blue('没有要更新的文件'));
+                await sftp.connect(user);
+                if(!await sftp.exists(remotePath)){
+                    await sftp.mkdir(remotePath,true);
                 }
-                 
-        });
+                let fp = checkout.map(async file=>{
+                    file.remoteDir = file.remoteDir.replace(/\\/g,'/');
+                    if(!await sftp.exists(file.remoteDir)){
+                        return file.remoteDir;
+                    }
+                });
+                fp = await Promise.all(fp);
+                dirs = [...new Set(fp.filter(p => p))];
+                dirs = dirs.map(p=>sftp.mkdir(p,true));
+                await Promise.all(dirs);
+                await checkout.reduce(async (prom,file)=>{
+                    let fileP =  file.localFile,ret;
+                    await prom;
+                    try{
+                        file.filename = file.filename.replace(/\\/g,'/');
+                        file.localFile = file.localFile.replace(/\\/g,'/');
+                        ret = await sftp.fastPut(file.localFile,file.remoteDir + '/' + file.filename);
+                        console.log(chalk.green(file.localFile + '--->' + file.remoteDir + '/' + file.filename + '--->已上传'));
+                    }catch(e){
+                        errFiles.push(fileP);
+                        console.log(chalk.red(e));    
+                    }
+                    return ret;
+                },Promise.resolve());
+
+                // checkout = checkout.map(async file=>{
+                //     let fileP =  file.localFile;
+                //     try{
+                //         file.filename = file.filename.replace(/\\/g,'/');
+                //         file.localFile = file.localFile.replace(/\\/g,'/');
+                //         await sftp.fastPut(file.localFile,file.remoteDir + '/' + file.filename);
+                //         console.log(chalk.green(file.localFile + '--->' + file.remoteDir + '/' + file.filename + '--->已上传'));
+                //     }catch(e){
+                //         errFiles.push(fileP);
+                //         console.log(chalk.red(e));    
+                //     }
+                    
+                // })
+                // await Promise.all(checkout);
+                await sftp.end();
+                if(cache)checker.reWriteCache(errFiles);
+                if(errFiles.length){
+                    console.log(chalk.red("多个文件上传出错"));   
+                }else{
+                    console.log(chalk.green("全部上传结束"));   
+                }
+                
+            }catch(e){
+                await sftp.end();
+                if(cache)checker.reWriteCache(); ;
+                console.log(chalk.red(e));   
+            }
+             
+        }
+        if(compiler.hooks){
+            compiler.hooks.done.tap('WebpackSSHPlugins', upload);
+        }else{
+            compiler.plugin('done',upload)
+        }
+        
     }
 }
 module.exports=WebpackSSHPlugins;
