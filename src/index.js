@@ -165,7 +165,7 @@ class WebpackSSHPlugins{
     apply(compiler) {
         let localPath = compiler.options.output.path;
         let { remotePath ,user, localDir,cache = false} = this.options;
-        const upload = async (compilation) => {
+        const upload = async (compilation,callback) => {
             let checker = new PreloadCheck({
                 localPath: path.resolve(localPath,localDir),
                 cacheDirectory: this.options.cacheDirectory,
@@ -231,12 +231,12 @@ class WebpackSSHPlugins{
                 if(cache)checker.reWriteCache(); ;
                 console.log(chalk.red(e));   
             }
-             
+            callback();
         }
         if(compiler.hooks){
-            compiler.hooks.done.tap('WebpackSSHPlugins', upload);
+            compiler.hooks.afterEmit.tapAsync('WebpackSSHPlugins', upload);
         }else{
-            compiler.plugin('done',upload)
+            compiler.plugin('after-emit',upload)
         }
         
     }
