@@ -13,18 +13,20 @@ const WebpackSShUpload = require('webpack-ssh-upload');
 
 ...
 new SSHPlugin({
-	remotePath: '', remote dir
+	remotePath: '', //remote dir
 	user:{
 		host:'',
 		port:'',
 		username:'',
 		password:''
 	},
-	localDir: '' local file or dir
+	test: /\.js$/, //Reg if you do not set this option,default upload all files
+	localDir: '' //local file or dir
 })
 ...
 
 ```
+
 ### tips
 
 if you need, you can new this plugin one more.

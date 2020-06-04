@@ -16,6 +16,7 @@ const readdir = promisify(fs.readdir);
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
 const exists = promisify(fs.exists);
+require('events').EventEmitter.defaultMaxListeners = 0;
 
 //上传之前对比文件有改动的上传服务器
 const rootDir = '_hashFiles';
@@ -164,10 +165,10 @@ class WebpackSSHPlugins{
     }
     apply(compiler) {
         let localPath = compiler.options.output.path;
-        let { remotePath ,user, localDir,cache = false} = this.options;
+        let { remotePath ,user, localDir='./',cache = false,test} = this.options;
         const upload = async (compilation,callback) => {
             let checker = new PreloadCheck({
-                localPath: path.resolve(localPath,localDir),
+                localPath: path.join(localPath,localDir),
                 cacheDirectory: this.options.cacheDirectory,
                 remotePath
             });
@@ -189,6 +190,7 @@ class WebpackSSHPlugins{
                 dirs = [...new Set(fp.filter(p => p))];
                 dirs = dirs.map(p=>sftp.mkdir(p,true));
                 await Promise.all(dirs);
+                if(test&&test instanceof RegExp)checkout = checkout.filter(val=>test.test(val.filename));
                 await checkout.reduce(async (prom,file)=>{
                     let fileP =  file.localFile,ret;
                     await prom;
