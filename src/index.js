@@ -197,7 +197,7 @@ class WebpackSSHPlugins{
                     try{
                         file.filename = file.filename.replace(/\\/g,'/');
                         file.localFile = file.localFile.replace(/\\/g,'/');
-                        ret = await sftp.fastPut(file.localFile,file.remoteDir + '/' + file.filename);
+                        ret = await sftp.fastPut(file.localFile,file.remoteDir + '/' + file.filename,{mode: 0o777});
                         console.log(chalk.green(file.localFile + '--->' + file.remoteDir + '/' + file.filename + '--->已上传'));
                     }catch(e){
                         errFiles.push(fileP);
