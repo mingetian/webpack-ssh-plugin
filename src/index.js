@@ -181,6 +181,7 @@ class WebpackSSHPlugins{
                     await sftp.mkdir(remotePath,true);
                 }
                 let fp = checkout.map(async file=>{
+                    if(!file.filename)return;
                     file.remoteDir = file.remoteDir.replace(/\\/g,'/');
                     if(!await sftp.exists(file.remoteDir)){
                         return file.remoteDir;
