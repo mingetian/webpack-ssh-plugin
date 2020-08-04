@@ -21,7 +21,7 @@ new SSHPlugin({
 		password:''
 	},
 	test: /\.js$/, //Reg if you do not set this option,default upload all files
-	localDir: '' //local file or dir, default webpack output.path.
+	localDir: '' //local file or dir, default webpack output.path
 })
 ...
 
