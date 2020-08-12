@@ -71,7 +71,9 @@ class PreloadCheck {
         let cachePath = this.sshCacheDirectory;
         try{
             if(! await exists(this.sshCacheDirectory)){
-                cachePath = await makeDir(this.sshCacheDirectory);
+                cachePath = await makeDir(this.sshCacheDirectory,{
+                    mode: 0o777
+                });
             }
             cacheJSON = await readFile(path.join(cachePath,rootDir),{encoding:'utf8'});
         }catch(e){
