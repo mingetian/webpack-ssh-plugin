@@ -190,9 +190,11 @@ class WebpackSSHPlugins{
                     }
                 });
                 fp = await Promise.all(fp);
-                dirs = [...new Set(fp.filter(p => p))];
-                dirs = dirs.map(p=>sftp.mkdir(p,true));
+                const dirsPath = [...new Set(fp.filter(p => p))];
+                dirs = dirsPath.map(p=>sftp.mkdir(p,true));
                 await Promise.all(dirs);
+                const dirsChmod = dirsPath.map(p=>sftp.chmod(p, 0o777));
+                await Promise.all(dirsChmod);
                 if(test&&test instanceof RegExp)checkout = checkout.filter(val=>test.test(val.filename));
                 await checkout.reduce(async (prom,file)=>{
                     let fileP =  file.localFile,ret;
